@@ -22,6 +22,19 @@ exports.getMyProfile = async (req, res) => {
   return success(res, user);
 };
 
+exports.updateProfile = async (req, res) => {
+  const { fullName, bio } = req.body;
+  const newProfilePicture = req.file ? req.file.filename : undefined;
+
+  const updated = await userService.updateUserProfile(req.user.id, {
+    fullName,
+    bio,
+    newProfilePicture
+  });
+
+  return success(res, updated, 'Perfil atualizado com sucesso.');
+};
+
 exports.getPublicProfile = async (req, res) => {
   const user = await userService.getPublicProfile(req.params.username);
   return success(res, user);

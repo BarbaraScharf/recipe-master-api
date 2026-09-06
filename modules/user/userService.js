@@ -1,5 +1,7 @@
 const User = require('./userModel');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const fs = require('fs');
 const { generateToken } = require('../../config/jwt');
 
 async function registerUser(username, email, password, fullName) {
@@ -78,6 +80,42 @@ async function getUserProfile(userId) {
   return user;
 }
 
+async function updateUserProfile(userId, { fullName, bio, newProfilePicture }) {
+  const user = await User.findOne({ where: { id: userId } });
+
+  if (!user) {
+    const error = new Error('Usuário não encontrado.');
+    error.status = 404;
+    throw error;
+  }
+
+  // Se enviou nova foto, apaga a antiga (se não for a padrão)
+  if (newProfilePicture && user.profilePicture !== 'default-profile.png') {
+    const oldPath = path.join(__dirname, '../../public/uploads/profiles', user.profilePicture);
+    if (fs.existsSync(oldPath)) {
+      fs.unlinkSync(oldPath);
+    }
+  }
+
+  await user.update({
+    fullName: fullName !== undefined ? fullName : user.fullName,
+    bio: bio !== undefined ? bio : user.bio,
+    profilePicture: newProfilePicture || user.profilePicture
+  });
+
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    fullName: user.fullName,
+    bio: user.bio,
+    profilePicture: user.profilePicture,
+    followersCount: user.followersCount,
+    followingCount: user.followingCount,
+    recipesCount: user.recipesCount
+  };
+}
+
 async function getPublicProfile(username) {
   const user = await User.findOne({
     where: { username },
@@ -93,4 +131,4 @@ async function getPublicProfile(username) {
   return user;
 }
 
-module.exports = { registerUser, loginUser, getUserProfile, getPublicProfile };
+module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, getPublicProfile };

@@ -1,6 +1,7 @@
 var express = require('express');
 var logger = require('morgan');
 var cors = require('cors');
+var path = require('path');
 require('dotenv').config();
 
 var indexRouter = require('./routes/index');
@@ -18,6 +19,9 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
+
+// Servir arquivos estáticos (uploads de perfil)
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use('/api', indexRouter);
 app.use('/api', searchRoutes);

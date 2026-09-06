@@ -56,3 +56,19 @@ exports.loginValidator = [
 
   validate
 ];
+
+exports.profileUpdateValidator = [
+  body('fullName')
+    .optional()
+    .notEmpty()
+    .withMessage('O nome completo não pode ser vazio.')
+    .trim(),
+
+  body('bio')
+    .optional()
+    .isLength({ max: VALIDATION.BIO_MAX })
+    .withMessage(`A bio deve ter no máximo ${VALIDATION.BIO_MAX} caracteres.`)
+    .trim(),
+
+  validate
+];
