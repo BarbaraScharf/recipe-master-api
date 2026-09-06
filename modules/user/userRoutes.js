@@ -1,0 +1,16 @@
+const express = require('express');
+const router = express.Router();
+const userController = require('./userController');
+const { registerValidator, loginValidator } = require('./userValidator');
+const asyncHandler = require('../../middlewares/asyncHandler');
+const { isAuthenticated } = require('../../middlewares/auth');
+
+router.post('/register', registerValidator, asyncHandler(userController.register));
+router.post('/login', loginValidator, asyncHandler(userController.login));
+router.post('/logout', isAuthenticated, userController.logout);
+
+// /profile/me ANTES de /profile/:username — ordem importa
+router.get('/profile/me', isAuthenticated, asyncHandler(userController.getMyProfile));
+router.get('/profile/:username', asyncHandler(userController.getPublicProfile));
+
+module.exports = router;
