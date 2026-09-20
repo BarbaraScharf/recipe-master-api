@@ -1,6 +1,6 @@
 # RecipeMaster API
 
-Back-end da aplicação **RecipeMaster**, uma plataforma para descobrir, compartilhar e favoritar receitas. Este projeto foi desenvolvido como atividade prática da disciplina de Programação Web, seguindo uma arquitetura em camadas (Route → Controller → Service) e persistência de dados real com MySQL.
+Back-end da aplicação **RecipeMaster**, uma plataforma para descobrir, compartilhar e favoritar receitas. Desenvolvido como atividade prática da disciplina de Programação Web, seguindo arquitetura em camadas (Route → Controller → Service) com persistência real em MySQL.
 
 Front-end correspondente: [recipe-master-frontend](https://github.com/BarbaraScharf/recipe-master-frontend)
 
@@ -10,6 +10,7 @@ Front-end correspondente: [recipe-master-frontend](https://github.com/BarbaraSch
 - **Sequelize** + **MySQL** — ORM e banco de dados relacional
 - **JWT (jsonwebtoken)** — autenticação baseada em token
 - **bcryptjs** — hashing de senhas
+- **Multer** — upload de arquivos (foto de perfil)
 - **express-validator** — validação declarativa de entrada
 - **CORS** + **dotenv** + **morgan** — configuração de origem, variáveis de ambiente e logging
 
@@ -17,13 +18,16 @@ Front-end correspondente: [recipe-master-frontend](https://github.com/BarbaraSch
 
     recipe-master-api/
     ├── bin/                  # ponto de entrada do servidor (www)
-    ├── config/               # configuração de banco, JWT e constantes
-    ├── middlewares/          # apiResponse, asyncHandler, errorHandler, auth
+    ├── config/               # database.js, jwt.js, constants.js
+    ├── middlewares/          # apiResponse, asyncHandler, errorHandler, auth, profileMulter
     ├── modules/
     │   ├── search/           # busca global (Route → Controller → Service)
-    │   └── user/             # cadastro, login e perfil de usuário
+    │   └── user/             # cadastro, login, perfil e upload de foto
+    ├── public/
+    │   └── uploads/
+    │       └── profiles/     # fotos de perfil dos usuários
     ├── routes/               # rota raiz (GET /api)
-    ├── app.js                # configuração principal da aplicação Express
+    ├── app.js
     └── package.json
 
 ## Como rodar o projeto
@@ -46,7 +50,7 @@ npm install
 CREATE DATABASE recipe_master_db;
 
 # 4. Configure as variáveis de ambiente
-# Crie um arquivo .env na raiz do projeto com o seguinte conteúdo:
+# Crie um arquivo .env na raiz com o conteúdo abaixo:
 ```
 
 ```env
@@ -62,37 +66,36 @@ JWT_EXPIRES_IN=7d
 ```
 
 ```bash
-# 5. Rode o servidor em modo desenvolvimento
+# 5. Rode em modo desenvolvimento
 npm run dev
 ```
 
-A API sobe em `http://localhost:3000` e sincroniza automaticamente as tabelas no banco (`sequelize.sync`).
+A API sobe em `http://localhost:3000` e sincroniza as tabelas automaticamente via `sequelize.sync({ alter: true })`.
 
-## Endpoints principais
+## Endpoints
 
-| Método | Rota                    | Descrição                                  | Autenticação |
-|--------|-------------------------|---------------------------------------------|--------------|
-| GET    | `/api`                  | Status da API                               | Não          |
-| GET    | `/api/search?q=`        | Busca global (receitas e usuários)          | Não          |
-| POST   | `/api/register`         | Cria uma nova conta                         | Não          |
-| POST   | `/api/login`             | Autentica e retorna um token JWT            | Não          |
-| POST   | `/api/logout`            | Encerra a sessão                            | Sim          |
-| GET    | `/api/profile/me`        | Retorna o perfil do usuário autenticado     | Sim          |
-| GET    | `/api/profile/:username` | Retorna o perfil público de um usuário      | Não          |
+| Método | Rota                     | Descrição                                    | Auth |
+|--------|--------------------------|----------------------------------------------|------|
+| GET    | `/api`                   | Status da API                                | Não  |
+| GET    | `/api/search?q=`         | Busca global (receitas e usuários)           | Não  |
+| POST   | `/api/register`          | Cria uma nova conta                          | Não  |
+| POST   | `/api/login`             | Autentica e retorna token JWT                | Não  |
+| POST   | `/api/logout`            | Encerra a sessão                             | Sim  |
+| GET    | `/api/profile/me`        | Perfil do usuário autenticado                | Sim  |
+| PUT    | `/api/profile/me`        | Atualiza nome, bio e foto de perfil          | Sim  |
+| GET    | `/api/profile/:username` | Perfil público de um usuário                 | Não  |
+| GET    | `/uploads/profiles/:file`| Serve arquivos de foto de perfil             | Não  |
 
 Todas as respostas seguem o padrão:
 
 ```json
-// sucesso
-{ "success": true, "message": "...", "data": { ... } }
-
-// erro
+{ "success": true,  "message": "...", "data": { ... } }
 { "success": false, "message": "...", "errors": [ ... ] }
 ```
 
 ## Autenticação
 
-A API utiliza **JWT**: o token é gerado no login e deve ser enviado no header `Authorization: Bearer <token>` nas rotas protegidas.
+JWT gerado no login, enviado no header `Authorization: Bearer <token>` nas rotas protegidas. Token expira em 7 dias por padrão.
 
 ## Licença
 
