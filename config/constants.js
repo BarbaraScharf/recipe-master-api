@@ -3,6 +3,10 @@ module.exports = {
     USERNAME_MIN: 3,
     USERNAME_MAX: 20,
     PASSWORD_MIN: 6,
-    BIO_MAX: 255
+    BIO_MAX: 255,
+    TITLE_MAX: 150,
+    DESCRIPTION_MAX: 2000,
+    INGREDIENTS_MAX: 3000,
+    INSTRUCTIONS_MAX: 5000
   }
 };

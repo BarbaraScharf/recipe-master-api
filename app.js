@@ -7,6 +7,7 @@ require('dotenv').config();
 var indexRouter = require('./routes/index');
 var searchRoutes = require('./modules/search/searchRoutes');
 var userRoutes = require('./modules/user/userRoutes');
+var recipeRoutes = require('./modules/recipe/recipeRoutes');
 var errorHandler = require('./middlewares/errorHandler');
 
 var app = express();
@@ -26,6 +27,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/api', indexRouter);
 app.use('/api', searchRoutes);
 app.use('/api', userRoutes);
+app.use('/api', recipeRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -36,6 +38,9 @@ app.use((req, res) => {
 });
 
 app.use(errorHandler);
+
+// Associações devem ser carregadas ANTES do sync
+require('./config/associations');
 
 const sequelize = require('./config/database');
 sequelize.sync({ alter: true })
