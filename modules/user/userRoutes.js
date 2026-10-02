@@ -15,4 +15,7 @@ router.get('/profile/me', isAuthenticated, asyncHandler(userController.getMyProf
 router.put('/profile/me', isAuthenticated, upload.single('profilePicture'), profileUpdateValidator, asyncHandler(userController.updateProfile));
 router.get('/profile/:username', asyncHandler(userController.getPublicProfile));
 
+// Feed — visão do usuário logado, paginada
+router.get('/feed', isAuthenticated, asyncHandler(userController.getFeed));
+
 module.exports = router;

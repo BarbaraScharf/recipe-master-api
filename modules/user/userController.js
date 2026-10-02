@@ -25,17 +25,19 @@ exports.getMyProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   const { fullName, bio } = req.body;
   const newProfilePicture = req.file ? req.file.filename : undefined;
-
-  const updated = await userService.updateUserProfile(req.user.id, {
-    fullName,
-    bio,
-    newProfilePicture
-  });
-
+  const updated = await userService.updateUserProfile(req.user.id, { fullName, bio, newProfilePicture });
   return success(res, updated, 'Perfil atualizado com sucesso.');
 };
 
 exports.getPublicProfile = async (req, res) => {
   const user = await userService.getPublicProfile(req.params.username);
   return success(res, user);
+};
+
+// GET /api/feed — feed paginado (visão do usuário logado)
+exports.getFeed = async (req, res) => {
+  const page  = parseInt(req.query.page)  || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const result = await userService.getFeed(page, limit);
+  return success(res, result);
 };

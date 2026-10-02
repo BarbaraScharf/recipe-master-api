@@ -131,4 +131,35 @@ async function getPublicProfile(username) {
   return user;
 }
 
-module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, getPublicProfile };
+const Recipe = require('../recipe/recipeModel');
+
+/**
+ * getFeed — no módulo user porque o feed é uma visão do usuário logado.
+ * Delega a query ao recipeModel mas a rota e controller ficam em user*.
+ * offset = (page - 1) * limit converte "página" em "registros a pular".
+ */
+async function getFeed(page = 1, limit = 10) {
+  const offset = (page - 1) * limit;
+
+  const { count, rows } = await Recipe.findAndCountAll({
+    where: { isBlocked: false },
+    include: [{
+      model: User,
+      as: 'author',
+      attributes: ['id', 'username', 'fullName', 'profilePicture']
+    }],
+    order: [['createdAt', 'DESC']],
+    limit,
+    offset
+  });
+
+  return {
+    recipes: rows,
+    total: count,
+    page,
+    limit,
+    totalPages: Math.ceil(count / limit)
+  };
+}
+
+module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, getPublicProfile, getFeed };

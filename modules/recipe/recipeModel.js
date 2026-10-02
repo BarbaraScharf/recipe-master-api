@@ -14,6 +14,7 @@ const Recipe = sequelize.define('Recipe',
     servings:     { type: DataTypes.INTEGER, allowNull: true, comment: 'Número de porções' },
     image:        { type: DataTypes.STRING, allowNull: true },
     likesCount:   { type: DataTypes.INTEGER, defaultValue: 0 },
+    viewsCount:   { type: DataTypes.INTEGER, defaultValue: 0 },
     isBlocked:    { type: DataTypes.BOOLEAN, defaultValue: false }
   },
   {
