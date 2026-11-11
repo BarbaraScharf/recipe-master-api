@@ -1,5 +1,6 @@
 const User = require('./userModel');
 const Recipe = require('../recipe/recipeModel');
+const Follow = require('../follow/followModel');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
@@ -137,9 +138,16 @@ async function getPublicProfile(username, requestingUserId = null) {
     throw error;
   }
 
-  const isOwner = requestingUserId ? user.id === requestingUserId : false;
+  const isOwner = requestingUserId ? Number(user.id) === Number(requestingUserId) : false;
+  let isFollowing = false;
+  if (requestingUserId && !isOwner) {
+    const follow = await Follow.findOne({
+      where: { followerId: Number(requestingUserId), followingId: user.id }
+    });
+    isFollowing = !!follow;
+  }
 
-  return { ...user.toJSON(), isOwner };
+  return { ...user.toJSON(), isOwner, isFollowing };
 }
 
 /**
@@ -171,4 +179,49 @@ async function getFeed(page = 1, limit = 10) {
   };
 }
 
-module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, getPublicProfile, getFeed };
+async function getFollowingRecipes(userId, page = 1, limit = 12) {
+  const { Op } = require('sequelize');
+  const follows = await Follow.findAll({
+    where: { followerId: Number(userId) },
+    attributes: ['followingId']
+  });
+  const followedIds = follows.map(follow => Number(follow.followingId));
+
+  if (followedIds.length === 0) {
+    return [];
+  }
+
+  const offset = (page - 1) * limit;
+  const { count, rows } = await Recipe.findAndCountAll({
+    where: {
+      isBlocked: false,
+      userId: { [Op.in]: followedIds }
+    },
+    include: [{
+      model: User,
+      as: 'author',
+      attributes: ['id', 'username', 'fullName', 'profilePicture']
+    }],
+    order: [['createdAt', 'DESC']],
+    limit,
+    offset
+  });
+
+  return {
+    recipes: rows,
+    total: count,
+    page,
+    limit,
+    totalPages: Math.ceil(count / limit)
+  };
+}
+
+module.exports = {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  updateUserProfile,
+  getPublicProfile,
+  getFeed,
+  getFollowingRecipes
+};

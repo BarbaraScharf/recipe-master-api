@@ -1,5 +1,5 @@
 const userService = require('./userService');
-const { success } = require('../../middlewares/apiResponse');
+const { success, error } = require('../../middlewares/apiResponse');
 
 exports.register = async (req, res) => {
   const { username, email, password, fullName } = req.body;
@@ -41,4 +41,19 @@ exports.getFeed = async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const result = await userService.getFeed(page, limit);
   return success(res, result);
+};
+
+// GET /api/following-recipes — receitas publicadas por quem o usuário segue
+exports.getFollowingRecipes = async (req, res) => {
+  const page = Number(req.query.page === undefined ? 1 : req.query.page);
+  const limit = Number(req.query.limit === undefined ? 12 : req.query.limit);
+  if (!Number.isSafeInteger(page) || page < 1 || !Number.isSafeInteger(limit) || limit < 1) {
+    return error(res, 'page e limit devem ser inteiros positivos.', 400);
+  }
+
+  const result = await userService.getFollowingRecipes(Number(req.user.id), page, limit);
+  const data = Array.isArray(result)
+    ? { recipes: [], total: 0, page, limit, totalPages: 0 }
+    : result;
+  return success(res, data);
 };

@@ -20,5 +20,6 @@ router.get('/profile/:username', optionalAuth, asyncHandler(userController.getPu
 
 // Feed — visão do usuário logado, paginada
 router.get('/feed', isAuthenticated, asyncHandler(userController.getFeed));
+router.get('/following-recipes', isAuthenticated, asyncHandler(userController.getFollowingRecipes));
 
 module.exports = router;

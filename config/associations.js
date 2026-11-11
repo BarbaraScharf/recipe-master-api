@@ -15,6 +15,7 @@ const User    = require('../modules/user/userModel');
 const Recipe  = require('../modules/recipe/recipeModel');
 const Like    = require('../modules/like/likeModel');
 const Comment = require('../modules/comment/commentModel');
+const Follow  = require('../modules/follow/followModel');
 
 // Recipe ↔ User
 User.hasMany(Recipe,   { foreignKey: 'userId', as: 'recipes',  onDelete: 'CASCADE' });
@@ -32,4 +33,10 @@ Comment.belongsTo(User,  { foreignKey: 'userId',   as: 'author' });
 Recipe.hasMany(Comment,  { foreignKey: 'recipeId', as: 'comments',      onDelete: 'CASCADE' });
 Comment.belongsTo(Recipe,{ foreignKey: 'recipeId', as: 'recipe' });
 
-module.exports = { User, Recipe, Like, Comment };
+// Follow ↔ User: os apelidos distinguem os dois papéis de User na mesma relação.
+User.hasMany(Follow, { foreignKey: 'followerId', as: 'followingLinks', onDelete: 'CASCADE' });
+User.hasMany(Follow, { foreignKey: 'followingId', as: 'followerLinks', onDelete: 'CASCADE' });
+Follow.belongsTo(User, { foreignKey: 'followerId', as: 'Follower' });
+Follow.belongsTo(User, { foreignKey: 'followingId', as: 'Following' });
+
+module.exports = { User, Recipe, Like, Comment, Follow };
