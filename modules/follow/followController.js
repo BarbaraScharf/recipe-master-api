@@ -49,3 +49,10 @@ exports.getFollowing = async (req, res) => {
   const following = await followService.getFollowing(userId);
   return success(res, following);
 };
+
+exports.getFollowingRecipes = async (req, res) => {
+  const page  = parseInt(req.query.page)  || 1;
+  const limit = parseInt(req.query.limit) || 12;
+  const result = await followService.getFollowingRecipes(req.user.id, page, limit);
+  return success(res, result);
+};

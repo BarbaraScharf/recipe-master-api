@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const sequelize = require('../../config/database');
 const Follow = require('./followModel');
 const User = require('../user/userModel');
@@ -117,4 +118,33 @@ async function getFollowing(userId) {
   return follows.map(follow => follow.Following);
 }
 
-module.exports = { toggleFollow, getFollowStatus, getFollowers, getFollowing };
+module.exports = { toggleFollow, getFollowStatus, getFollowers, getFollowing, getFollowingRecipes };
+
+async function getFollowingRecipes(userId, page = 1, limit = 12) {
+  const Recipe = require('../recipe/recipeModel');
+
+  const follows = await Follow.findAll({
+    where: { followerId: userId },
+    attributes: ['followingId']
+  });
+
+  const followedIds = follows.map(f => f.followingId);
+  if (followedIds.length === 0) {
+    return { recipes: [], total: 0, page, limit, totalPages: 0 };
+  }
+
+  const offset = (page - 1) * limit;
+  const { count, rows } = await Recipe.findAndCountAll({
+    where: { userId: { [Op.in]: followedIds }, isBlocked: false },
+    include: [{
+      model: User,
+      as: 'author',
+      attributes: ['id', 'username', 'fullName', 'profilePicture']
+    }],
+    order: [['createdAt', 'DESC']],
+    limit,
+    offset
+  });
+
+  return { recipes: rows, total: count, page, limit, totalPages: Math.ceil(count / limit) };
+}
